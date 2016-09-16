@@ -1,5 +1,3 @@
-# COMING SOON!
-
 # Master CocoPod Plugin for adding Squencing.com's Real-Time Personalization technology to iOS apps coded in Swift
 =========================================
 This Master CocoPod Plugin can be used to quickly add Real-Time Personalization to your app. This Master Plugin contains a customizable, end-to-end plug-n-play solution that quickly adds all necessary code (OAuth2, File Selector and App Chain coding) to your app.
