@@ -1,4 +1,5 @@
 # Master CocoaPods Plugin for adding Sequencing.com's Real-Time Personalization technology to iOS apps coded in Swift
+
 =========================================
 This Master CocoaPods Plugin can be used to quickly add Real-Time Personalization to your app. This Master Plugin contains a customizable, end-to-end plug-n-play solution that quickly adds all necessary code (OAuth2, File Selector and App Chain coding) to your app.
 
@@ -54,7 +55,7 @@ Master CocoaPod Plugin install
 * create Podfile in your project directory: ```$ pod init```
 * specify "sequencing-master-plugin-api-objc" pod parameters in Podfile: 
 
-	```pod 'sequencing-master-plugin-api-swift', '~> 1.0.1'```
+	```pod 'sequencing-master-plugin-api-swift', '~> 1.1.0'```
 
 * install the dependency in your project: ```$ pod install```
 * always open the Xcode workspace instead of the project file: ```$ open *.xcworkspace```
@@ -550,44 +551,103 @@ AppChains CocoaPod Plugin integration
 
 AppChains Swift API overview
 
+AppChain module contains framework with encapsulated logic inside (build on Objective-C language).
+AppChains Swift API overview
+
 Method  | Purpose | Arguments | Description
 ------------- | ------------- | ------------- | -------------
-`init(token: String, chainsHostname: String)`  | Constructor | **token** - security token provided by sequencing.com <br> **chainsHostname** - API server hostname. api.sequencing.com by default | Constructor used for creating AppChains class instance in case reporting API is needed and where security token is required
-`func getReport(remoteMethodName: String, applicationMethodName: String, datasourceId: String) -> ReturnValue<Report>`  | Reporting API | **remoteMethodName** - REST endpoint name, use "StartApp" <br> **applicationMethodName** - name of data processing routine <br> **datasourceId** - input data identifier <br>
+`init(token: String, withHostName: String)`  | Constructor | **token** - security token provided by sequencing.com <br> **Hostname** - API server hostname. api.sequencing.com by default | Constructor used for creating AppChains class instance in case reporting API is needed and where security token is required
+`func getReportWithApplicationMethodName(applicationMethodName: String!, withDatasourceId: String!, withSuccessBlock: ((Report!) -> Void)!, withFailureBlock: ((NSError!) -> Void)!)`   | Reporting API | **applicationMethodName** - name of data processing routine<br><br>**datasourceId** - input data identifier<br><br>**success** - callback executed on success operation, results with `Report` object<br><br>**failure** - callback executed on operation failure
+`func getBatchReportWithApplicationMethodName(appChainsParams: [AnyObject]!, withSuccessBlock: ReportsArray!, withFailureBlock: ((NSError!) -> Void)!)`   | Reporting API with batch request | **appChainsParams** - array of params for batch request.<br>Each param should be an array with 2 items:<br>first object - `applicationMethodName`<br>last object - `datasourceId`<br><br>**success** - callback executed on success operation, results with ReportsArray as array of dictionaries.<br>Each dictionary has following keys and objects:<br>`appChainID` - appChain ID string<br>`report` - Report object<br><br>**failure** - callback executed on operation failure
 
-Prerequisites:
-* Swift v2 compatible compiler
 
 Adding code to the project:
-* add import 
+
+* first of all you need to create bridging header file.
+	Select File > New > File > Header File > name it as
 
 	```
-	import sequencing_app_chains_api_swift
+	project-name-Bridging-Header.h
 	```
 
-After that you can start utilizing Reporting API: example
+* add AppChains class import in the bridging header file
+
+	```
+	#import <AppChainsLibrary/AppChains.h>
+	```
+
+* register your bridging header file in the project settings.
+	Select your project > project target > Build Settings > Objective-C Bridging Header
+	specify path for bridging header file
+
+	```
+	$(PROJECT_DIR)/project-name-Bridging-Header.h
+	```
+
+After that you can start utilizing Reporting API for single chain request, example:
 
 ```
-let appChainsManager = AppChains.init(token: accessToken as String, chainsHostname: "api.sequencing.com")
-	
-let returnValue: ReturnValue<Report> = appChainsManager.getReport("StartApp", applicationMethodName: "your chain number", datasourceId: "your fileID value"  as String)
-	
-switch returnValue {
+let appChainsManager = AppChains.init(token: accessToken as String, withHostName: "api.sequencing.com")
+
+appChainsManager.getReportWithApplicationMethodName("Chain88", withDatasourceId: fileID, withSuccessBlock: { (result) in
+            let resultReport: Report = result as Report!
             
-	case .Success(let value):
-    	let report: Report = value
-               
-        for result: Result in report.results {
-        	let resultValue: ResultValue = result.value
-               		
-            if resultValue.type == ResultType.TEXT {
-            	print(result.name + " = " + (resultValue as! TextResultValue).data)
+            if resultReport.isSucceeded() {    
+                if resultReport.getResults() != nil {
+                    for item: AnyObject in resultReport.getResults() {
+                        
+                        let resultObj = item as! Result
+                        let resultValue: ResultValue = resultObj.getValue()
+                        
+                        if resultValue.getType() == ResultType.Text {
+                            print(resultObj.getName() + " = " + (resultValue as! TextResultValue).getData())
+                        }
+                    }
+                }   
+            } else {
+                print("Error occured while getting genetic information")
             }
+            
+            
+
+            
+            }) { (error) in
+            	print("Error occured while getting genetic information. " + error.localizedDescription)
         }
-    
-    case .Failure(let error):
-    	print("Error occured while getting genetic information: " + error)
-}
+        
+```
+
+
+Example of using batch request API for several chains:
+
+```
+let appChainsManager = AppChains.init(token: accessToken as String, withHostName: "api.sequencing.com")
+
+let appChainsForRequest: NSArray = [["Chain88", fileID],
+									["Chain9", fileID]]
+
+appChainsManager.getBatchReportWithApplicationMethodName(appChainsForRequest as [AnyObject], withSuccessBlock: { (resultsArray) in
+            let reportResultsArray = resultsArray as NSArray
+            
+            for appChainReport in reportResultsArray {
+                let appChainReportDict = appChainReport as! NSDictionary
+                let resultReport: Report = appChainReportDict.objectForKey("report") as! Report;
+                let appChainID: NSString = appChainReportDict.objectForKey("appChainID") as! NSString;
+                
+                if appChainID.isEqualToString("Chain88") {
+                    appChainValue = self.parseReportForChain88(resultReport) // your own method to parse report object
+                    print(appChainValue)
+                    
+                } else if appChainID.isEqualToString("Chain9") {
+                    appChainValue = self.parseReportForChain9(resultReport) // your own method to parse report object
+                    print(appChainValue)
+                }   
+            }
+            
+        }) { (error) in
+            print("batch request error. " + error.localizedDescription)
+            completion(appchainsResults: nil)
+        }
 ```
 
 
