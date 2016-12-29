@@ -71,6 +71,7 @@ Sequencing.com uses standard OAuth approach which enables applications to obtain
 (https://github.com/SequencingDOTcom/oAuth2-code-and-demo/blob/master/screenshots/oauth_activity.png)
 
 
+
 ## Steps
 
 ### Step 1: Authorization Code Link
