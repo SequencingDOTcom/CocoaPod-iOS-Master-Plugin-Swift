@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
   s.platform     = :ios, '8.0'
   s.requires_arc = true
   
-  s.dependency "sequencing-oauth-api-swift", "~> 1.0.3"
-  s.dependency "sequencing-file-selector-api-swift", "~> 1.0.1"
+  s.dependency "sequencing-oauth-api-swift", "~> 2.0.0"
+  s.dependency "sequencing-file-selector-api-swift", "~> 1.1.0"
   s.dependency "sequencing-app-chains-api-swift", "~> 2.1.0"
 
 
