@@ -56,7 +56,7 @@ Master CocoaPod Plugin install
 * create Podfile in your project directory: ```$ pod init```
 * specify "sequencing-master-plugin-api-objc" pod parameters in Podfile: 
 
-	```pod 'sequencing-master-plugin-api-swift', '~> 1.1.0'```
+	```pod 'sequencing-master-plugin-api-swift', '~> 1.1.1'```
 
 * install the dependency in your project: ```$ pod install```
 * always open the Xcode workspace instead of the project file: ```$ open *.xcworkspace```
@@ -145,15 +145,39 @@ OAuth CocoaPod Plugin integration
 	
 	![sample files](https://github.com/SequencingDOTcom/CocoaPod-iOS-OAuth-ObjectiveC/blob/master/Screenshots/authTransportSecuritySetting.png)
 
+
 * **Use authorization method**
 	* **create View Controllers, e.g. for Login view and for SelectFile view**
 	
 	* **in your LoginViewController class:**
 	
-		* add pod import (pay attention to substitute original dash characters in title to underscore characters) 
+		* first of all you need to create bridging header file.
+		Select File > New > File > Header File > name it as
 		
-			```import sequencing_oauth_api_swift```
+			```
+			project-name-Bridging-Header.h
+			```
 
+		* add AppChains class import in the bridging header file
+
+			```
+			#import <AppChainsLibrary/AppChains.h>
+			```
+
+		* register your bridging header file in the project settings.
+			select your project > project target > Build Settings > Objective-C Bridging Header
+			specify path for bridging header file
+
+			```
+			$(PROJECT_DIR)/project-name-Bridging-Header.h
+			```
+		
+		* add property for SQOAuth class
+		
+			```
+			let oauthApiHelper = SQOAuth()
+			```
+	
 		* for authorization you need to specify your application parameters in String format (BEFORE using authorization methods)
 		
 			```
@@ -166,101 +190,109 @@ OAuth CocoaPod Plugin integration
 		* register these parameters into OAuth module instance
 	
 			```
-			SQOAuth.instance.registrateApplicationParametersClientID(CLIENT_ID,
-                                                                 	 ClientSecret: CLIENT_SECRET,
-                                                                 	 RedirectUri: REDIRECT_URI,
-                                                                 	 Scope: SCOPE)
+			self.oauthApiHelper.registrateApplicationParametersCliendID(CLIENT_ID,
+																		clientSecret:CLIENT_SECRET,
+																		redirectUri:REDIRECT_URI,
+																		scope:SCOPE)
 			```
 			
-		* subscribe your class for this protocol
+		* subscribe your class for Authorization protocol
+		
 			```
-			SQAuthorizationProtocolDelegate
+			SQAuthorizationProtocol
 			```
 		
 		* subscribe your class as delegate for such protocol
+		
 			```
-			SQOAuth.instance.authorizationDelegate = self
+			self.oauthApiHelper.authorizationDelegate = self
 			```
 		
-		* add methods for SQAuthorizationProtocolDelegate
+		* add methods for SQAuthorizationProtocol
+		
 			```
-			func userIsSuccessfullyAuthorized(token: SQToken) -> Void {
-        		dispatch_async(dispatch_get_main_queue(), { () -> Void in
-        			// your code is here for successful user authorization
-        		})	
-        	}
-    
-			func userIsNotAuthorized() -> Void {
-				dispatch_async(dispatch_get_main_queue()) {
-					// your code is here for unsuccessful user authorization
+			func userIsSuccessfullyAuthorized(_ token: SQToken) -> Void {
+				DispatchQueue.main.async {
+					print("user Is Successfully Authorized")
+					// your code is here for successful user authorization
 				}
-			}
+    		}
+    		
+    		func userIsNotAuthorized() -> Void {
+				DispatchQueue.main.async {
+	    			print("user is not authorized")
+	    			// your code is here for unsuccessful user authorization
+	    		}
+	    	}
+	    	
 
 			func userDidCancelAuthorization() -> Void {
-				dispatch_async(dispatch_get_main_queue()) {
-					// your code is here for abandoned user authorization
+				DispatchQueue.main.async {
+					// your code is here for abandoned user authorization			
 				}
 			}
-			
 			```
 		
 		* you can authorize your user now (e.g. via "login" button). For authorization you can use ```authorizeUser``` method. You can get access via shared instance of SQOAuth class)
+		
 			```
-			SQOAuth.instance.authorizeUser()
+			self.oauthApiHelper.authorizeUser()
 			```
 			
-			Related method from SQAuthorizationProtocolDelegate will be called as a result
+			Related method from SQAuthorizationProtocol will be called as a result
 		
 		* example of Login button (you can use ```@"button_signin_black"``` image that is included into the Pod within ```AuthImages.xcassets```)
-			```
-			
-    		let loginButton = UIButton(type: UIButtonType.Custom)
-	        loginButton.setImage(UIImage(named: "button_signin_white_gradation"), forState: UIControlState.Normal)
-    	    loginButton.addTarget(self, action: #selector(self.loginButtonPressed), forControlEvents: UIControlEvents.TouchUpInside)
+
+			```			
+    		// set up loginButton
+	        let loginButton = UIButton(type: UIButtonType.custom)
+    	    loginButton.setImage(UIImage(named: "button_signin_white_gradation"), for: UIControlState())
+        	loginButton.addTarget(self, action: #selector(self.loginButtonPressed), for: UIControlEvents.touchUpInside)
 	        loginButton.sizeToFit()
-	        loginButton.translatesAutoresizingMaskIntoConstraints = false
-	        self.view.addSubview(loginButton)
-	        self.view.bringSubviewToFront(loginButton)
+    	    loginButton.translatesAutoresizingMaskIntoConstraints = false
+        	self.view.addSubview(loginButton)
+	        self.view.bringSubview(toFront: loginButton)
         
 	        // adding constraints for loginButton
-	        let xCenter = NSLayoutConstraint.init(item: loginButton,
-	                                              attribute: NSLayoutAttribute.CenterX,
-	                                              relatedBy: NSLayoutRelation.Equal,
-	                                              toItem: self.view,
-	                                              attribute: NSLayoutAttribute.CenterX,
-	                                              multiplier: 1,
-	                                              constant: 0)
+    	    let xCenter = NSLayoutConstraint.init(item: loginButton,
+        	                                      attribute: NSLayoutAttribute.centerX,
+            	                                  relatedBy: NSLayoutRelation.equal,
+                	                              toItem: self.view,
+                    	                          attribute: NSLayoutAttribute.centerX,
+                        	                      multiplier: 1,
+                            	                  constant: 0)
 	        let yCenter = NSLayoutConstraint.init(item: loginButton,
-	                                              attribute: NSLayoutAttribute.CenterY,
-	                                              relatedBy: NSLayoutRelation.Equal,
-	                                              toItem: self.view,
-	                                              attribute: NSLayoutAttribute.CenterY,
-	                                              multiplier: 1,
-	                                              constant: 0)
+    	                                          attribute: NSLayoutAttribute.centerY,
+        	                                      relatedBy: NSLayoutRelation.equal,
+            	                                  toItem: self.view,
+                	                              attribute: NSLayoutAttribute.centerY,
+                    	                          multiplier: 1,
+                        	                      constant: 0)
 	        self.view.addConstraint(xCenter)
-	        self.view.addConstraint(yCenter)
+    	    self.view.addConstraint(yCenter)
     		```
     	
-    	* example of ```loginButtonPressed``` method 
+    	* example of ```loginButtonPressed``` method
+    	 
     		```
     		func loginButtonPressed() {
-    			self.view.userInteractionEnabled = false
-    			SQOAuth.instance.authorizeUser()
+     	   		self.view.isUserInteractionEnabled = false
+	        	self.oauthApiHelper.authorizeUser()
     		}
     		```
     		
     	* if you want to use original sequencing icon for login button add ```Assets.xcassets``` into ```Copy Bundle Resources``` in project settings
-    		* select project name
-    		* select project target
-    		* open ```Build Phases``` tab
-    		* expand ```Copy Bundle Resources``` phase
-    		* click ```Add Items``` button (plus icon)
-    		* click ```Add Other``` button
-    		* open your project folder
-    		* open ```Pods``` subfolder
-    		* open ```sequencing-oauth-api-swift``` subfolder
-    		* open ```Resources``` subfolder
-    		* select ```Assets.xcassets``` file
+    		- select project name
+    		- select project target
+    		- open ```Build Phases``` tab
+    		- expand ```Copy Bundle Resources``` phase
+    		- click ```Add Items``` button (plus icon)
+    		- click ```Add Other``` button
+    		- open your project folder
+    		- open ```Pods``` subfolder
+    		- open ```sequencing-oauth-api-swift``` subfolder
+    		- open ```Resources``` subfolder
+    		- select ```Assets.xcassets``` file
 		
 		* add segue in Storyboard from LoginViewController to MainViewController with identifier ```SELECT_FILES```
 		
@@ -268,55 +300,62 @@ OAuth CocoaPod Plugin integration
 			```let SELECT_FILES_CONTROLLER_SEGUE_ID = "SELECT_FILES"```
 		
 		* example of navigation methods when user is authorized (token object will be passed on to the SelectFileViewController)
+		
 			```
-			func userIsSuccessfullyAuthorized(token: SQToken) -> Void {
-				dispatch_async(self.kMainQueue, { () -> Void in
-					print("user Is Successfully Authorized")
-					self.view.userInteractionEnabled = true
-					self.performSegueWithIdentifier(self.SELECT_FILES_CONTROLLER_SEGUE_ID, sender: token)
-				})
-			}
+			func userIsSuccessfullyAuthorized(_ token: SQToken) -> Void {
+		        DispatchQueue.main.async {
+			        print("user Is Successfully Authorized")
+    	        	self.view.isUserInteractionEnabled = true
+	    	        self.performSegue(withIdentifier: self.SELECT_FILES_CONTROLLER_SEGUE_ID, sender: token)
+		        }
+		    }
 			
-			override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-				if segue.destinationViewController.isKindOfClass(SelectFileViewController) {
-					if sender != nil {
-						let destinationVC = segue.destinationViewController as! SelectFileViewController
-						destinationVC.token = sender as! SQToken?
-					}
-				}
-			}
+			override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+		        if segue.destination.isKind(of: SelectFileViewController.self) {
+        		    if sender != nil {
+                		let destinationVC = segue.destination as! SelectFileViewController
+	        	        destinationVC.token = sender as! SQToken?
+    		        }
+		        }
+		    }
 			```
 
 	* **in your SelectFileViewController class:**
 		
-		* add imports
-			```
-			import sequencing_oauth_api_swift
-			```
-				
 		* subscribe your class for these protocols
+		
 			```
-			SQTokenRefreshProtocolDelegate
+			SQTokenRefreshProtocol
 			```
 			
 		* add property for handling Token object
+		
 			```
 			var token: SQToken?
 			```
 		
-		* subscribe your class as delegate for such protocols
+		* add property for SQOAuth class
+		
 			```
-			SQOAuth.instance.refreshTokenDelegate = self
+			let oauthApiHelper = SQOAuth()
+			```
+			
+		* subscribe your class as delegate for such protocols
+		
+			```
+			self.oauthApiHelper.refreshTokenDelegate = self
 			```
 		
 		* add method for SQTokenRefreshProtocol - it is called when token is refreshed
+		
 			```
-			func tokenIsRefreshed(updatedToken: SQToken) -> Void {
-				// your code is here to handle refreshed token
-			}
+			func tokenIsRefreshed(_ updatedToken: SQToken) -> Void {
+				// your code is here to handle refreshed token    
+    		}
 			```
 		
 		* in method ```userIsSuccessfullyAuthorized``` and in method ```tokenIsRefreshed``` you'll receive the same SQToken object, that contains following 5 properties with clear titles for usage:
+		
 			```	
 			accessToken:	String
 			expirationDate:	NSDate
@@ -327,10 +366,6 @@ OAuth CocoaPod Plugin integration
 		
 			(!) DO NOT OVERRIDE ```refresh_token``` property for ```token``` object - it comes as ```nil``` after refresh token request.
 	
-		* for your extra needs you can always get access directly to the up-to-day token object which is stored in ```SQAuthResult``` class via ```token``` property
-			```
-			SQAuthResult.instance.token
-			```
 			
 			
 File Selector CocoaPods Plugin integration
@@ -370,31 +405,42 @@ File Selector CocoaPods Plugin integration
 * **Set up file selector plugin in code**
 		
 	* add import: 
+	
 		```
 		import sequencing_file_selector_api_swift
 		```
 
 	* subscribe your class to file selector protocol: 
+	
 		```
-		SQFileSelectorProtocolDelegate
+		SQFileSelectorProtocol
 		```
 		
+	* add property for SQFilesAPI class
+	
+		```
+		let filesApiHelper = SQFilesAPI.instance
+		```
+	
 	* subscribe your class as handler/delegate for selected file in file selector: 
+
 		```
-		SQFilesAPI.instance.selectedFileDelegate = self
+		self.filesApiHelper.selectedFileDelegate = self
 		```
 		
-	* implement "handleFileSelected" method from ```SQFileSelectorProtocolDelegate``` protocol
+	* implement "handleFileSelected" method from ```SQFileSelectorProtocol``` protocol
+
 		```
-		func handleFileSelected(file: NSDictionary) -> Void {
+		func handleFileSelected(_ file: NSDictionary) -> Void {
 			// your code here
 	    }
 		```
 
 	* implement optional "closeButtonPressed" method from protocol if needed
+
 		```
 		func closeButtonPressed() -> Void {
-    	    // your code here
+        	// your code here
 	    }
 		```
 	
@@ -404,6 +450,7 @@ File Selector CocoaPods Plugin integration
 	* set up some button for getting/viewing files for logged in user, and specify delegate method for this button
 	
 	* specify segue ID constant for file selector UI
+	
 		```
 		let FILES_CONTROLLER_SEGUE_ID = "GET_FILES"
 		```	
@@ -411,24 +458,27 @@ File Selector CocoaPods Plugin integration
 	* you can load/get files, list of my files and list of sample files, via ```withToken: loadFiles:``` method (via ```SQFilesAPI``` class with shared instance init access).
 	
 		pay attention, you need to pass on the String value of ```token.accessToken``` object as a parameter for this method:
+		
 		```
-		SQFilesAPI.instance.loadFilesWithToken(self.token!.accessToken, success: { (success) in
-			dispatch_async(dispatch_get_main_queue()) {
+		self.filesApiHelper.loadFilesWithToken(self.token!.accessToken as NSString, success: { (success) in
+			DispatchQueue.main.async {
 				// your code here
 			}
-	    })
+		})
 		```
 		
 		```loadFilesWithToken``` method will return a Bool value with ```true` if files were successfully loaded or ```false``` if there were any problem. You need to manage this in your code
 		
 	* if files were loaded successfully you can now open/show File Selector in UI. You can do it by calling File Selector view via ```performSegueWithIdentifier``` method:
+	
 		```
-		self.performSegueWithIdentifier(self.FILES_CONTROLLER_SEGUE_ID, sender: nil)
+		self.performSegue(withIdentifier: self.FILES_CONTROLLER_SEGUE_ID, sender: nil)
 		```
 	
 		while opening File Selector in UI you can set `Close` button to be present if you need
+		
 		```
-		SQFilesAPI.instance.closeButton = true
+		self.filesApiHelper.closeButton = true
 		```
 	
 	* when user selects any file and clicks on "Continue" button in File Selector UI - ```handleFileSelected``` method from ```SQFileSelectorProtocolDelegate``` protocol will be called then. Selected file will be passed on as a parameter. In this method you can handle this selected file
@@ -476,61 +526,66 @@ File Selector CocoaPods Plugin integration
 	
 	
 	* example of delegate method for select file button
+
 		```
-		@IBAction func loadFilesButtonPressed(sender: AnyObject) {
-        	self.view.userInteractionEnabled = false
+		@IBAction func loadFilesButtonPressed(_ sender: AnyObject) {
+	
+        	self.view.isUserInteractionEnabled = false
 	        self.startActivityIndicatorWithTitle("Loading Files")
     	    if self.token != nil {
-        	    SQFilesAPI.instance.loadFilesWithToken(self.token!.accessToken, success: { (success) in
-            	    dispatch_async(self.kMainQueue) {
-                	    if success {
-                    	    self.stopActivityIndicator()
-                        	self.view.userInteractionEnabled = true
-	                        self.performSegueWithIdentifier(self.FILES_CONTROLLER_SEGUE_ID, sender: nil)
+        	    self.filesApiHelper.loadFilesWithToken(self.token!.accessToken as NSString, success: { (success) in
+            
+            		DispatchQueue.main.async {
+            			if success {
+                	        self.stopActivityIndicator()
+                        	self.view.isUserInteractionEnabled = true
+	                        self.performSegue(withIdentifier: self.FILES_CONTROLLER_SEGUE_ID, sender: nil)
                         
     	                } else {
         	                self.stopActivityIndicator()
-            	            self.view.userInteractionEnabled = true
+            	            self.view.isUserInteractionEnabled = true
                 	        self.showAlertWithMessage("Sorry, can't load genetic files")
-                    	}
-	                }
-    	        })
-        	} else {
-        		self.stopActivityIndicator()
-	            self.showAlertWithMessage("Sorry, can't load genetic files > token is empty")
-    	    }
-	    }
+	                    }
+    	        	}
+        	    })
+	        } else {
+    	    	self.stopActivityIndicator()
+        	    self.showAlertWithMessage("Sorry, can't load genetic files > token is empty")
+	        }
+    	}
 		```	
 
 
 	* example of ```handleFileSelected``` method
+
 		```
-		func handleFileSelected(file: NSDictionary) -> Void {
-    	    self.dismissViewControllerAnimated(true, completion: nil)
+		func handleFileSelected(_ file: NSDictionary) -> Void {
+    	    self.dismiss(animated: true, completion: nil)
         	print(file)
-	        if file.allKeys.count > 0 {
-    	        dispatch_async(self.kMainQueue) {
-        	        self.stopActivityIndicator()
-            	    self.view.userInteractionEnabled = true
-                	self.selectedFile = file
-	            }
-    	    } else {
-        	    dispatch_async(kMainQueue, {
-            	    self.stopActivityIndicator()
-                	self.view.userInteractionEnabled = true
-	                self.showAlertWithMessage("Sorry, can't load genetic files")
-    	        })
-        	}
-	    }
+        
+	        DispatchQueue.main.async {
+    	    	if file.allKeys.count > 0 {
+	    	    	self.stopActivityIndicator()
+            	    self.view.isUserInteractionEnabled = true
+                	self.selectedFile = file    	
+	        	} else {
+		        	self.stopActivityIndicator()
+        	        self.view.isUserInteractionEnabled = true
+            	    self.showAlertWithMessage("Sorry, can't load genetic files")
+	        	}
+    	    }
+	    }	
 		```
 
 	* example of ```closeButtonPressed``` method
+	
 		```
 		func closeButtonPressed() -> Void {
 			self.stopActivityIndicator()
-        	self.dismissViewControllerAnimated(true, completion: nil)
+        	self.dismiss(animated: true, completion: nil)
 	    }
 		```
+
 
 
 
