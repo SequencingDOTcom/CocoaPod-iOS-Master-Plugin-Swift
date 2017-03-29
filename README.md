@@ -1,6 +1,4 @@
 # Master CocoaPods Plugin for adding Sequencing.com's Real-Time Personalization technology to iOS apps coded in Swift
-
-=========================================
 This Master CocoaPods Plugin can be used to quickly add Real-Time Personalization to your app. This Master Plugin contains a customizable, end-to-end plug-n-play solution that quickly adds all necessary code (OAuth2, File Selector and App Chain coding) to your app.
 
 Once this Master Plugin is added to your app all you'll need to do is:
