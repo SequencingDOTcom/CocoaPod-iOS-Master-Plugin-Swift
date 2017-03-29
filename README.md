@@ -134,21 +134,21 @@ If the authorization is valid, the API will send a JSON response containing the 
 OAuth CocoaPod Plugin integration
 ======================================
 
-[See OAuth CocoaPod Plugin documentation (ObjC)](https://github.com/SequencingDOTcom/CocoaPod-iOS-OAuth-Swift)
+[See OAuth CocoaPod Plugin documentation (Swift)](https://github.com/SequencingDOTcom/CocoaPod-iOS-OAuth-Swift)
 
 
 
 File Selector CocoaPod Plugin integration
 ======================================
 
-[See File Selector CocoaPod Plugin documentation (ObjC)](https://github.com/SequencingDOTcom/CocoaPod-iOS-File-Selector-Swift)
+[See File Selector CocoaPod Plugin documentation (Swift)](https://github.com/SequencingDOTcom/CocoaPod-iOS-File-Selector-Swift)
 
 
 
 AppChains CocoaPod Plugin integration
 ======================================
 
-[See AppChains CocoaPod Plugin documentation (ObjC)](https://github.com/SequencingDOTcom/CocoaPod-iOS-App-Chains-Swift)
+[See AppChains CocoaPod Plugin documentation (Swift)](https://github.com/SequencingDOTcom/CocoaPod-iOS-App-Chains-Swift)
 
 
 
